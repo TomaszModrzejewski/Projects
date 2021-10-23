@@ -1,0 +1,18 @@
+1635003533592	geckodriver	INFO	Listening on 127.0.0.1:56278
+1635003536610	mozrunner::runner	INFO	Running command: "C:\\Program Files\\Mozilla Firefox\\firefox.exe" "--marionette" "-foreground" "-no-remote" "-profile" "C:\\Users\\GOH15\\AppData\\Local\\Temp\\rust_mozprofileGFkV5T"
+1635003536974	Marionette	INFO	Marionette enabled
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new NotFoundError("Could not open the file at C:\\Users\\GOH15\\AppData\\Local\\Temp\\rust_mozprofileGFkV5T\\search.json.mozlz4", (void 0)))
+1635003538905	Marionette	INFO	Listening on port 56286
+1635003539358	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
+1635003667966	Marionette	INFO	Stopped listening on port 56286
+JavaScript error: resource:///modules/Interactions.jsm, line 201: NS_ERROR_FAILURE: Component returned failure code: 0x80004005 (NS_ERROR_FAILURE) [nsIUserIdleService.removeIdleObserver]
+console.warn: TopSitesFeed: Failed to fetch data from Contile server: NetworkError when attempting to fetch resource.
+1635003948718	geckodriver	INFO	Listening on 127.0.0.1:56598
+1635003951777	mozrunner::runner	INFO	Running command: "C:\\Program Files\\Mozilla Firefox\\firefox.exe" "--marionette" "-foreground" "-no-remote" "-profile" "C:\\Users\\GOH15\\AppData\\Local\\Temp\\rust_mozprofilels1yQf"
+1635003952158	Marionette	INFO	Marionette enabled
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new NotFoundError("Could not open the file at C:\\Users\\GOH15\\AppData\\Local\\Temp\\rust_mozprofilels1yQf\\search.json.mozlz4", (void 0)))
+1635003954140	Marionette	INFO	Listening on port 56608
+1635003954497	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
+1635004128673	Marionette	INFO	Stopped listening on port 56608
+JavaScript error: resource:///modules/Interactions.jsm, line 201: NS_ERROR_FAILURE: Component returned failure code: 0x80004005 (NS_ERROR_FAILURE) [nsIUserIdleService.removeIdleObserver]
+console.warn: TopSitesFeed: Failed to fetch data from Contile server: NetworkError when attempting to fetch resource.

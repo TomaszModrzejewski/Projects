@@ -58,7 +58,7 @@ READ FILE
 try:
     with io.open(args.file, "r", encoding="utf-8") as file:
         lines = file.readlines()
-    
+
 except IOError as e:
     print("File \"" + args.file + "\" not found. Please recheck your file location")
     sys.exit()
@@ -66,7 +66,7 @@ except IOError as e:
 stop_words = []
 if args.stopword:
     try:
-        with io.open("stop-words/" + args.stopword + ".txt", "r", encoding="utf-8") as file:
+        with io.open(f"stop-words/{args.stopword}.txt", "r", encoding="utf-8") as file:
             stop_words = [x.strip() for x in file.readlines()]
     except IOError as e:
         print("Stop Words file not found in \"" + args.file + "\" not found.")
@@ -80,7 +80,7 @@ if args.customstopword:
     except IOError as e:
         print("Stop Words file not found in \"" + args.file + "\" not found.")
         sys.exit()
-        
+
 """
 PARSING AND COUNTING
 """
@@ -107,7 +107,7 @@ for line in lines:
     if chatline.line_type == 'Chat':
         chat_counter['chat_count'] += 1
 
-    if chatline.line_type == 'Event':
+    elif chatline.line_type == 'Event':
         chat_counter['event_count'] += 1
 
     if chatline.is_deleted_chat:
@@ -117,7 +117,7 @@ for line in lines:
         chat_counter['senders'].append(chatline.sender)
         for i in chatline.emojis:
             chat_counter['fav_emoji'].append((chatline.sender, i))
-        
+
         for i in chatline.words:
             chat_counter['fav_word'].append((chatline.sender, i))
 
@@ -151,8 +151,14 @@ def reduce_and_sort(data):
     )
 
 def reduce_and_filter_words(list_of_words):
-    val = [w.lower() for w in list_of_words if (len(w) > 1) and (w.isalnum()) and (not w.isnumeric()) and (w.lower() not in stop_words)]
-    return val
+    return [
+        w.lower()
+        for w in list_of_words
+        if (len(w) > 1)
+        and (w.isalnum())
+        and (not w.isnumeric())
+        and (w.lower() not in stop_words)
+    ]
 
 def filter_single_word(w):
     return (len(w) > 1) and (w.isalnum()) and (not w.isnumeric()) and (w.lower() not in stop_words)
@@ -161,7 +167,7 @@ def reduce_fav_item(data):
     exist = []
     arr = []
     for i in data:
-        if i[1] > 0 and not i[0][0] in exist:
+        if i[1] > 0 and i[0][0] not in exist:
             exist.append(i[0][0])
             arr.append(i)
     return arr
@@ -187,8 +193,8 @@ def printBarChart(data, fill="█"):
     if len(data) <= 0:
         print("Empty data")
         return
-    
-    total = max([x[1] for x in data])
+
+    total = max(x[1] for x in data)
     max_label_length = len(sorted(data, key=lambda tup: len(tup[0]), reverse=True)[0][0])
     for i in data:
         label = i[0] + " " * (max_label_length - len(i[0]))
@@ -196,7 +202,7 @@ def printBarChart(data, fill="█"):
 
 def printCalendar(data):
     days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-    hours = ['0' + str(x) if len(str(x)) < 2 else str(x) for x in range(24)]
+    hours = [f'0{str(x)}' if len(str(x)) < 2 else str(x) for x in range(24)]
 
     max_val = float(data[max(data, key=data.get)]) if len(data) else 0
 
@@ -210,19 +216,19 @@ def printCalendar(data):
     sys.stdout.write("     ")
     for day in days:
         sys.stdout.write('\t[' + day[:3] + "]")
-        
+
     sys.stdout.write('\n')
 
     for hour in hours:
-        sys.stdout.write("[" + hour + ':00]')
-        
+        sys.stdout.write(f"[{hour}:00]")
+
         for day in days:
-            
+
             dict_key = (day, hour)
-            
+
             if dict_key in data:
                 # tick = str(ct[dict_key])
-                
+
                 if data[dict_key] > ticks[3]:
                     tick = Color.custom("███", bold=True, fg_red=True)
                 elif data[dict_key] > ticks[2]:
@@ -233,7 +239,7 @@ def printCalendar(data):
                     tick = Color.custom("░░░", bold=True, fg_light_grey=True)
             else:
                 tick = Color.custom('===', bold=False, fg_white=True)
-            
+
             sys.stdout.write('\t ' + tick)
         sys.stdout.write('\n')
 
@@ -244,13 +250,27 @@ print(Color.red("-" * 50))
 print(Color.red("Chat Count by Sender"))
 print(Color.red("-" * 50))
 print("Active Sender\t:", Color.red("{}".format(len(data))))
-print("Total Chat\t:", Color.red("{}".format(sum([x[1] for x in data]))))
-print("Average \t:", Color.red("{:.1f} chat per member".format((sum([x[1] for x in data]) / len(data)) if len(data) else 0)))
+print("Total Chat\t:", Color.red("{}".format(sum(x[1] for x in data))))
+print(
+    "Average \t:",
+    Color.red(
+        "{:.1f} chat per member".format(
+            sum(x[1] for x in data) / len(data) if len(data) else 0
+        )
+    ),
+)
+
 print()
 printBarChart(data[:20], fill=Color.red("█"))
 if len(data) > 20:
     print("---")
-    print("Other from {} member | {}".format(Color.red(str(len(data[20:]))), Color.red(str(sum([x[1] for x in data[20:]])))))
+    print(
+        "Other from {} member | {}".format(
+            Color.red(str(len(data[20:]))),
+            Color.red(str(sum(x[1] for x in data[20:]))),
+        )
+    )
+
 print()
 print()
 
@@ -260,33 +280,52 @@ print(Color.blue("-" * 50))
 print(Color.blue("Mentioned Domain (Shared Link/URL)"))
 print(Color.blue("-" * 50))
 print("Domain Count\t: ", Color.blue(str(len(data))))
-print("Mention Count\t: ", Color.blue(str(sum([x[1] for x in data]))))
+print("Mention Count\t: ", Color.blue(str(sum(x[1] for x in data))))
 print()
 printBarChart(data[:20], fill=Color.blue("█"))
 if len(data) > 20:
     print("---")
-    print("Other {} domain | {}".format(Color.blue(str(len(data[20:]))), Color.blue(str(sum([x[1] for x in data[20:]])))))
+    print(
+        "Other {} domain | {}".format(
+            Color.blue(str(len(data[20:]))),
+            Color.blue(str(sum(x[1] for x in data[20:]))),
+        )
+    )
+
 print()
 print()
 
 
 # Emojis
-data = [(x[0] + " (" + emoji.demojize(x[0]) + ") ", x[1]) for x in chat_counter['emojis']]
+data = [
+    (f'{x[0]} ({emoji.demojize(x[0])}) ', x[1]) for x in chat_counter['emojis']
+]
+
 print(Color.orange("-" * 50))
 print(Color.orange("Used Emoji"))
 print(Color.orange("-" * 50))
 print("Unique Emoji\t: ", Color.orange(str(len(data))))
-print("Total Count\t: ", Color.orange(str(sum([x[1] for x in data]))))
+print("Total Count\t: ", Color.orange(str(sum(x[1] for x in data))))
 print()
 printBarChart(data[:20], fill=Color.orange("█"))
 if len(data) > 20:
     print("---")
-    print("Other {} emoji | {}".format(Color.orange(str(len(data[20:]))), Color.orange(str(sum([x[1] for x in data[20:]])))))
+    print(
+        "Other {} emoji | {}".format(
+            Color.orange(str(len(data[20:]))),
+            Color.orange(str(sum(x[1] for x in data[20:]))),
+        )
+    )
+
 print()
 print()
 
 # Fav Emojis
-data = [(x[0][0] + " | " + x[0][1] + " | (" + emoji.demojize(x[0][1]) + ")", x[1]) for x in chat_counter['fav_emoji']]
+data = [
+    (f'{x[0][0]} | {x[0][1]} | ({emoji.demojize(x[0][1])})', x[1])
+    for x in chat_counter['fav_emoji']
+]
+
 print(Color.orange("-" * 50))
 print(Color.orange("Favorite Emoji by Member"))
 print(Color.orange("-" * 50))
@@ -301,17 +340,23 @@ print(Color.green("-" * 50))
 print(Color.green("Used Word"))
 print(Color.green("-" * 50))
 print("Unique Word\t: ", Color.green(str(len(data))))
-print("Total Count\t: ", Color.green(str(sum([x[1] for x in data]))))
+print("Total Count\t: ", Color.green(str(sum(x[1] for x in data))))
 print()
 printBarChart(data[:20], fill=Color.green("█"))
 if len(data) > 20:
     print("---")
-    print("Other {} word | {}".format(Color.green(str(len(data[20:]))), Color.green(str(sum([x[1] for x in data[20:]])))))
+    print(
+        "Other {} word | {}".format(
+            Color.green(str(len(data[20:]))),
+            Color.green(str(sum(x[1] for x in data[20:]))),
+        )
+    )
+
 print()
 print()
 
 # Fav Word
-data = [(x[0][0] + " | " + x[0][1] + " | ", x[1]) for x in chat_counter['fav_word']]
+data = [(f'{x[0][0]} | {x[0][1]} | ', x[1]) for x in chat_counter['fav_word']]
 print(Color.green("-" * 50))
 print(Color.green("Favorite Word by Member"))
 print(Color.green("-" * 50))
@@ -326,14 +371,22 @@ print(Color.purple("-" * 50))
 print(Color.purple("Chat Activity Heatmap"))
 print(Color.purple("-" * 50))
 if len(data) > 0:
-    print("Most Busy\t: {}, at {} ({} chat)".format(
-        Color.purple(str(data[0][0][0])), 
-        Color.purple(str(data[0][0][1]) + ":00"), 
-        Color.purple(str(data[0][1]))))
-    print("Most Silence\t: {}, at {} ({} chat)".format(
-        Color.purple(str(data[-1][0][0])), 
-        Color.purple(str(data[-1][0][1]) + ":00"), 
-        Color.purple(str(data[-1][1]))))
+    print(
+        "Most Busy\t: {}, at {} ({} chat)".format(
+            Color.purple(str(data[0][0][0])),
+            Color.purple(f'{str(data[0][0][1])}:00'),
+            Color.purple(str(data[0][1])),
+        )
+    )
+
+    print(
+        "Most Silence\t: {}, at {} ({} chat)".format(
+            Color.purple(str(data[-1][0][0])),
+            Color.purple(f'{str(data[-1][0][1])}:00'),
+            Color.purple(str(data[-1][1])),
+        )
+    )
+
 print()
 print('---')
 print('X: Days')

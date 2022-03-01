@@ -44,8 +44,9 @@ class Chatline:
         The Rule is:
         <datetime><separator><contact/phone number>
         """
-        match = re.match(re.compile(patterns.IS_STARTING_LINE, re.VERBOSE), line)
-        if match:
+        if match := re.match(
+            re.compile(patterns.IS_STARTING_LINE, re.VERBOSE), line
+        ):
             return match
 
         return None
@@ -58,8 +59,7 @@ class Chatline:
         The Rule is:
         <contact/phone number><separator><message body>
         """
-        match = re.match(re.compile(patterns.IS_CHAT, re.VERBOSE), body)
-        if match:
+        if match := re.match(re.compile(patterns.IS_CHAT, re.VERBOSE), body):
             return match
 
         return None
@@ -80,17 +80,13 @@ class Chatline:
         Note: in Android, there is no difference pattern wether it's an image, 
             video, audio, gif, document or sticker.
         """
-        for p in patterns.IS_ATTACHMENT:
-            if re.match(p, body):
-                return body
-        return None
+        return next((body for p in patterns.IS_ATTACHMENT if re.match(p, body)), None)
 
     def extract_timestamp(self, time_string=""):
         """
         EXTRACT TIMESTAMP
         """
-        timestamp = parser.parse(time_string)
-        return timestamp
+        return parser.parse(time_string)
 
     def extract_url(self, body=""):
         """
@@ -108,16 +104,10 @@ class Chatline:
         #remove non alpha content
         regex = re.sub(r"[^a-z\s]+", "", string.lower())
         regex = re.sub(r'[^\x00-\x7f]',r'', regex)
-        words = re.sub(r"[^\w]", " ",  string).split()
-
-        return words
+        return re.sub(r"[^\w]", " ",  string).split()
 
     def extract_emojis(self, string=""):
-        emj = []
-        for c in string:
-            if c in emoji.UNICODE_EMOJI_ALIAS_ENGLISH:
-                emj.append(c)
-        return emj
+        return [c for c in string if c in emoji.UNICODE_EMOJI_ALIAS_ENGLISH]
 
     def is_event(self, body=""):
         """Detect wether the body of chat is event log.
@@ -143,24 +133,17 @@ class Chatline:
         Match the known event message
         """
         for p in patterns.IS_EVENT:
-            match = re.match(p, body)
-            if match:
+            if match := re.match(p, body):
                 return match
         return None
 
     def parse_line(self, line=""):
         line = self.replace_bad_character(line)
-        # Check wether the line is starting line or following line
-        starting_line = self.is_starting_line(line)
-
-        if starting_line:
+        if starting_line := self.is_starting_line(line):
             # Set startingline
             self.is_startingline = True
 
-            # Extract timestamp
-            dt = self.extract_timestamp(starting_line.group(2))
-            # Set timestamp
-            if dt:
+            if dt := self.extract_timestamp(starting_line.group(2)):
                 self.timestamp = dt
 
             # Body of the chat separated from timestamp
@@ -201,30 +184,25 @@ class Chatline:
             if has_attachment:
                 # Set chat type to attachment
                 self.line_type = "Attachment"
+            elif self.is_deleted(message_body):
+                # Set deleted
+                self.is_deleted_chat = True
             else:
-                if self.is_deleted(message_body):
-                    # Set deleted
-                    self.is_deleted_chat = True
-                else:
-                    words = message_body
+                words = message_body
 
-                    #URL & Domain
-                    urls = self.extract_url(message_body)
-                    if urls:
-                        for i in urls:
-                            # Exclude url from words
-                            words = words.replace(i[0], "")
+                if urls := self.extract_url(message_body):
+                    for i in urls:
+                        # Exclude url from words
+                        words = words.replace(i[0], "")
 
-                            # Set domains
-                            self.domains.append(self.get_domain(i))
+                        # Set domains
+                        self.domains.append(self.get_domain(i))
 
-                    # Set Words
-                    self.words = self.get_words(words)
+                # Set Words
+                self.words = self.get_words(words)
 
-                    #Emoji
-                    emjs = self.extract_emojis(message_body)
-                    if emjs:
-                        self.emojis = emjs
+                if emjs := self.extract_emojis(message_body):
+                    self.emojis = emjs
 
         elif self.is_event(body):
             # Set line_type
